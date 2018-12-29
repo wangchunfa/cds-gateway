@@ -8,6 +8,7 @@ import com.netflix.zuul.exception.ZuulException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
@@ -15,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.regex.Pattern;
 
 
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.PRE_TYPE;
@@ -22,7 +24,12 @@ import static org.springframework.cloud.netflix.zuul.filters.support.FilterConst
 @Component
 public class PreLogFilter extends ZuulFilter {
     private static final String REQUEST_ID = "request-id";
-    private static final Logger logger = LoggerFactory.getLogger(LoginFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(PreLogFilter.class);
+
+    @Value("${filter.PreLogFilter.filterOrder}")
+    private int filterOrder = 20;
+    @Value("${filter.PreLogFilter.pattern}")
+    private String pattern = "";
 
     /**
      * 过滤器类型，前置过滤器
@@ -41,22 +48,14 @@ public class PreLogFilter extends ZuulFilter {
      */
     @Override
     public int filterOrder() {
-        return 20;
+        return filterOrder;
     }
 
     @Override
     public boolean shouldFilter() {
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletRequest request = requestContext.getRequest();
-
-        // ACL 这里增加需要过滤的URL正则表达式
-        if ("/product/api/v1/product/find".equalsIgnoreCase(request.getRequestURI())) {
-            return true;
-        } else if ("/product/api/v1/product/save".equalsIgnoreCase(request.getRequestURI())) {
-            return true;
-        }
-        return false;
-
+        return Pattern.matches(pattern, request.getRequestURI());
     }
 
     @Override

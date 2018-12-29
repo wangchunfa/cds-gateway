@@ -5,20 +5,52 @@ spring:
   application:
     name: cds-gateway
 
-product-service:
-  ribbon:
-    listOfServers: 127.0.0.1:8771, 127.0.0.1:8772, 127.0.0.1:8773, 127.0.0.1:8774, 127.0.0.1:8775, 127.0.0.1:8776, 127.0.0.1:8777, 127.0.0.1:8778
-#    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.BestAvailableRule
-    ReadTimeout: 5000
-    ConnectTimeout: 2000
-    MaxAutoRetries: 1
-    MaxAutoRetriesNextServer: 2
+### filter config ###
+filter:
+  PreLogFilter:
+    filterOrder: 20
+    pattern: (^/product1/.*)|(^/product2/.*)
+  PostLogFilter:
+    filterOrder: 31
+    pattern: (^/product1/.*)|(^/product2/.*)
 
+
+### Services setting  ###
+product-service1:
+  ribbon:
+    listOfServers: 127.0.0.1:8771, 127.0.0.1:8772
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.BestAvailableRule
+    ReadTimeout: 6000
+    ConnectTimeout: 3000
+    MaxAutoRetries: 1
+    MaxAutoRetriesNextServer: 1
+
+product-service2:
+  ribbon:
+    listOfServers: 127.0.0.1:8773, 127.0.0.1:8774
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.BestAvailableRule
+    ReadTimeout: 6000
+    ConnectTimeout: 3000
+    MaxAutoRetries: 1
+    MaxAutoRetriesNextServer: 1
+
+### Ribbon setting begin ###
+ribbon:
+  eureka:
+    enabled: false
+  eager-load:
+    enabled: true
+    clients: product-service1, product-service2
+
+### ZUUL setting begin ###
 zuul:
   routes:
-    product-service:
-      path: /product/**
-      serviceId: product-service
+    product-service1:
+      path: /product1/**
+      serviceId: product-service1
+    product-service2:
+      path: /product2/**
+      serviceId: product-service2
   forceOriginalQueryStringEncoding: true
   decodeUrl: false
   retryable: true
@@ -27,14 +59,11 @@ zuul:
   ratelimit:
     enabled: false
     policies:
-      product-service:
-        limit: 2
+      product-service1:
+        limit: 10000
         refresh-interval: 60
         type: origin
-
-ribbon:
-  eureka:
-    enabled: false
-
-
-
+      product-service2:
+        limit: 10000
+        refresh-interval: 60
+        type: origin

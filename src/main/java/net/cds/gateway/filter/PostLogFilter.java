@@ -3,17 +3,19 @@ package net.cds.gateway.filter;
 import com.alibaba.fastjson.JSONObject;
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
-import com.netflix.zuul.exception.ZuulException;
 import io.micrometer.core.instrument.util.IOUtils;
 import io.micrometer.core.instrument.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.netflix.ribbon.RibbonHttpResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.POST_TYPE;
 
@@ -22,6 +24,10 @@ public class PostLogFilter extends ZuulFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(PostLogFilter.class);
 
+    @Value("${filter.PreLogFilter.filterOrder}")
+    private int filterOrder = 31;
+    @Value("${filter.PreLogFilter.pattern}")
+    private String pattern = "";
     @Override
     public String filterType() {
         return POST_TYPE;
@@ -34,10 +40,12 @@ public class PostLogFilter extends ZuulFilter {
 
     @Override
     public boolean shouldFilter() {
-        return true; // 默认放行
+        RequestContext requestContext = RequestContext.getCurrentContext();
+        HttpServletRequest request = requestContext.getRequest();
+        return Pattern.matches(pattern, request.getRequestURI());
     }
 
-    //TODO 如果被流空了，则不需要做
+    //TODO 如果被流控了，则不需要处理
     @Override
     public Object run() {
         RequestContext requestContext = RequestContext.getCurrentContext();
@@ -48,7 +56,7 @@ public class PostLogFilter extends ZuulFilter {
             // 内容重新写入，不然在默认的过滤器SendResponseFilter中会报错
             requestContext.setResponseBody(this.formatRespBody(responseObj, resp));
             this.formatRespHeader(responseObj, resp);
-            if (responseObj != null) {
+            if (!responseObj.isEmpty()) {
                 logger.info(responseObj.toJSONString());
             }
         } else if (zuulResponse != null) {
