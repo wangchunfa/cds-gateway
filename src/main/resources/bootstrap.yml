@@ -1,0 +1,14 @@
+server:
+  port: 10000
+spring:
+  application:
+    name: cds-gateway                     #指定了配置文件的应用名
+  cloud:
+    config:
+      uri: http://localhost:9100/
+      profile: test                      #指定的环境
+      label: master                      #指定分支
+      #不覆盖本地配置文件
+      allow-override: true
+      override-none: true
+      override-system-properties: false

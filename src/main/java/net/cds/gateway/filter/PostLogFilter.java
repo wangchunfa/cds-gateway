@@ -8,6 +8,7 @@ import io.micrometer.core.instrument.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.netflix.ribbon.RibbonHttpResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -20,14 +21,16 @@ import java.util.regex.Pattern;
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.POST_TYPE;
 
 @Component
+@RefreshScope
 public class PostLogFilter extends ZuulFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(PostLogFilter.class);
 
-    @Value("${filter.PreLogFilter.filterOrder}")
+    @Value("${filter.PostLogFilter.filterOrder}")
     private int filterOrder = 31;
-    @Value("${filter.PreLogFilter.pattern}")
+    @Value("${filter.PostLogFilter.pattern}")
     private String pattern = "";
+
     @Override
     public String filterType() {
         return POST_TYPE;

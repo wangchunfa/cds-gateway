@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
@@ -22,6 +23,7 @@ import java.util.regex.Pattern;
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.PRE_TYPE;
 
 @Component
+@RefreshScope
 public class PreLogFilter extends ZuulFilter {
     private static final String REQUEST_ID = "request-id";
     private static final Logger logger = LoggerFactory.getLogger(PreLogFilter.class);

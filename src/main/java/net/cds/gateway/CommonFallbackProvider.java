@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.net.SocketTimeoutException;
 
 @Component
+
 public class CommonFallbackProvider implements FallbackProvider {
     private static final Logger logger = LoggerFactory.getLogger(PostLogFilter.class);
 
